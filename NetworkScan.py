@@ -1,15 +1,27 @@
-""" Scans network, identifies hosts, groups, sorts and generates resevations """ 
+"""Scans network default or provided network for default or provided TCP ports
+usage: NetworkScan.py [-h] [-b <IP>] [-p <ports>] [-t ##]
+
+options:
+  -h, --help            show this help message and exit
+  -b <IP>, --bind <IP>  Specify IP interface to bind
+  -p <ports>, --ports <ports>
+                        Specify ports to scan default is -p "22,80,81,443,3389,8080"
+  -t ##, --threads ##   Specify number of threads. Default is 30 
+
+    All command line parameters are optional.
+    When called without arguments will attempt to identify the default interface ip
+    and scan it's entire subnet for the default ports TCP 22,80,81,443,3389,8080    
+""" 
 import ipaddress
 import socket
 import argparse
 import threading
 import time
 from queue import Queue
+
 import ifaddr
 import getmac
 import OuiLookup
-
-ports = [ 80,443,8080 ]
 
 def get_local_ip():
     """ attempts a connection to find default local ip"""
@@ -46,12 +58,12 @@ def threader():
         q.task_done()
 
 def portscan(target,ports):
+    #worker function to scan a specific target
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(1) 
     #print('Scanning target', target)
     openports = [] 
     mac = getmac.get_mac_address(ip=target)
-    
     for port in ports:
        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
        try:
@@ -70,9 +82,9 @@ def portscan(target,ports):
         oui=str(ouilookup).replace("'", "-").split("-")
         #Test if maybe ouilookup worked, if not say nothing
         if len(oui) >= 4 and len(oui[3]) >= 3:
-            mfg='Made by ' + str(oui[3])
+            mfg = 'Made by ' + str(oui[3])
         else:
-           mfg=" "
+           mfg = " "
         #Test if we found openports   
         if len(openports) >= 1:
             reports='Open ports: ' + str(openports)
@@ -82,23 +94,37 @@ def portscan(target,ports):
     return()
         
 def setup ():
+    #Get command line options if any, and set defaults if not.    
     parser = argparse.ArgumentParser()
     parser.add_argument('-b','--bind', type=str,metavar='<IP>' , help="Specify IP interface to bind")
+    parser.add_argument('-p','--ports', type=str,metavar='<ports>' , help="Specify ports to scan default is -p \"22,80,81,443,3389,8080\"")
+    parser.add_argument('-t','--threads', type=int,metavar='##', help="Specify number of threads. Default is 30")
+    defaultports = [22,80,81,443,3389,8080 ]
     args = parser.parse_args()
     if args.bind:
-        print('Bind IP provided,', args.bind )
+        print('NetworkScanner starting - Bind IP provided.... ')
         ip = args.bind
     else:
         ip = get_local_ip()
-        print('Default IP detected is: ' + str(ip))
+        print('NetworkScanner starting - Using default IP...')
+    if args.ports:
+        ports = int(args.ports)
+    else: 
+        ports = defaultports
+    if args.threads:
+        threads = args.threads
+    else:
+        threads = 30
     getmask = get_netmask(ip)
     targetnetwork = ipaddress.ip_network(getmask, False)
     targethosts=get_hosts(targetnetwork)
-    print("Target network is: " + str(targetnetwork) + " with " + str(len(targethosts)) + " hosts to scan.")
-    return(targethosts)
+    print("Target network is: " + str(targetnetwork) + " with " + str(len(targethosts)) + " hosts to scan for ports : " + str(ports))
+    if len(targethosts) >= 100:
+        print('Network has ' + str(len(targethosts)) + ' hosts, this scan may take up to 5 minutes to complete.')
+    return(targethosts, ports, threads)
     
 #Gather args and find hosts to scan.
-targethosts=setup()
+targethosts, ports, threads = setup()
 # Create the queue and threader 
 q = Queue()
 
@@ -107,7 +133,7 @@ for worker in targethosts:
     q.put(worker)
 
 # how many threads are we going to allow for
-for x in range(30):
+for x in range(threads):
      t = threading.Thread(target=threader)
      # classifying as a daemon, so they will die when the main dies
      t.daemon = True
@@ -118,3 +144,4 @@ start = time.time()
 
 # wait until the thread terminates.
 q.join()
+print("Scan completed.")
