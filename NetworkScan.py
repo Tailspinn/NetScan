@@ -39,7 +39,7 @@ def get_hosts(net):
     return hosts
 
 def get_netmask(local):
-    """attempt to lookup adapter netmask by IP"""
+    """Loop through local network adapters to find default ip match return netmask"""
     adapters = ifaddr.get_adapters()
     for adapter in adapters:
        if str(local) in str(adapter):
@@ -60,7 +60,7 @@ def threader():
 def portscan(target,ports):
     #worker function to scan a specific target
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(1) 
+    #s.settimeout(1) 
     #print('Scanning target', target)
     openports = [] 
     mac = getmac.get_mac_address(ip=target)
@@ -82,15 +82,15 @@ def portscan(target,ports):
         oui=str(ouilookup).replace("'", "-").split("-")
         #Test if maybe ouilookup worked, if not say nothing
         if len(oui) >= 4 and len(oui[3]) >= 3:
-            mfg = 'Made by ' + str(oui[3])
+            mfg = 'Vendor: ' + str(oui[3])
         else:
            mfg = " "
         #Test if we found openports   
         if len(openports) >= 1:
-            reports='Open ports: ' + str(openports)
+            reports='Listening ports: ' + str(openports)
         else: 
             reports=" "
-        print("Host alive at:", target, "with MAC:", mac, mfg, reports )
+        print(target, mfg, reports )
     return()
         
 def setup ():
@@ -102,11 +102,11 @@ def setup ():
     defaultports = [22,80,81,443,3389,8080 ]
     args = parser.parse_args()
     if args.bind:
-        print('NetworkScanner starting - Bind IP provided.... ')
+        print('NetworkScan - Bind IP provided.... ')
         ip = args.bind
     else:
         ip = get_local_ip()
-        print('NetworkScanner starting - Using default IP...')
+        print('NetworkScan - Using default IP...')
     if args.ports:
         ports = int(args.ports)
     else: 
@@ -120,7 +120,8 @@ def setup ():
     targethosts=get_hosts(targetnetwork)
     print("Target network is: " + str(targetnetwork) + " with " + str(len(targethosts)) + " hosts to scan for ports : " + str(ports))
     if len(targethosts) >= 100:
-        print('Network has ' + str(len(targethosts)) + ' hosts, this scan may take up to 5 minutes to complete.')
+        print('========== Network has ' + str(len(targethosts)) + ' hosts, this scan may take over 5 minutes to complete. ==========')
+        print(' ')
     return(targethosts, ports, threads)
     
 #Gather args and find hosts to scan.
