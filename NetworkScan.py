@@ -90,7 +90,7 @@ def portscan(target,ports):
             reports='Listening ports: ' + str(openports)
         else: 
             reports=" "
-        print(target, mfg, reports )
+        print(target.ljust(15), mfg, reports ) 
     return()
         
 def setup ():
