@@ -59,20 +59,20 @@ def threader():
         # gets an worker from the queue
         worker = q.get()
         # Run the example job with the avail worker in queue (thread)
-        portscan(worker, ports)
+        portscan(worker)
         #completed with the job
         q.task_done()
 
-def portscan(target,ports):
+def portscan(target):
     #worker function to scan a specific hosts ports
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(1) 
     #print('DBG Scanning target', target, ports )
     openports = [] 
     mac = getmac.get_mac_address(ip=target)
     for port in ports:
        #print("Checking port:",target, port)
        try:
+           s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+           s.settimeout(1) 
            s.connect((target, int(port)))
            s.shutdown(2)
            #print ("DBG Open port: ", target, port, mac )
@@ -105,6 +105,7 @@ def portscan(target,ports):
     return()
         
 def setup ():
+    global ip, ports, threads, targethosts, modulecall
     #Get command line options if any, and set defaults.    
     parser = argparse.ArgumentParser()
     parser.add_argument('-b','--bind', type=str,metavar='<IP>' , help="Specify IP interface to bind")
@@ -126,6 +127,7 @@ def setup ():
         if not args.module:
             print('NetworkScan - Using default IP...')
     if args.ports:
+        global ports 
         ports = []
         splitports = (args.ports).split(",")
         for port in splitports:
@@ -155,7 +157,7 @@ def setup ():
     else:
         getmask = get_netmask(ip)
         targetnetwork = ipaddress.ip_network(getmask, False)
-        targethosts=get_hosts(targetnetwork)
+        targethosts = get_hosts(targetnetwork)
     if not modulecall and not args.single and not args.range:
         #Print informational header
         print("Target network is: " + str(targetnetwork) + " with " + str(len(targethosts)) + " hosts to scan for ports : " + str(ports))
@@ -164,36 +166,39 @@ def setup ():
         if not modulecall:
             print('========== Network has ' + str(len(targethosts)) + ' hosts, this scan may take over 5 minutes to complete. ==========')
             print(' ')
-    return(targethosts, ports, threads, modulecall, args)
+    return ()
+
+def main ():
+    setup()
+    #Gather args and find hosts to scan.
+    #
+    global q, modulereturn    
+    if modulecall:
+        #Create a list to collect return results
+        modulereturn = []
+    q = Queue()    
+    for worker in targethosts:
+        #populate the queue
+        q.put(worker)
+        
+    # how many threads
+    for x in range(threads):
+         t = threading.Thread(target=threader)
+         # classifying as a daemon, so they will die when the main dies
+         t.daemon = True
+         # begins, must come after daemon definition
+         t.start()
+    start = time.time()
+    # wait until the thread terminates.
+    q.join()
     
-#Gather args and find hosts to scan.
-targethosts, ports, threads, modulecall, args = setup()
-# Create the queue and threader 
-q = Queue()
+    if modulecall:
+        #print("DBG Module Call Dump:")
+        print(modulereturn)
+        pass
+    else:
+        print("Scan completed.")
 
-if modulecall:
-    #Create a list to collect return results
-    modulereturn = []
-    
-#populate the queue
-for worker in targethosts:
-    q.put(worker)
+#call main
+main () 
 
-# how many threads are we going to allow for
-for x in range(threads):
-     t = threading.Thread(target=threader)
-     # classifying as a daemon, so they will die when the main dies
-     t.daemon = True
-     # begins, must come after daemon definition
-     t.start()
-
-start = time.time()
-# wait until the thread terminates.
-q.join()
-
-if modulecall:
-    #print("DBG Module Call Dump:")
-    #print(modulereturn)
-    pass
-else:
-     print("Scan completed.")
