@@ -71,8 +71,8 @@ NetworkScan - Using default IP...
 
 C:\github\NetworkScan>NetworkScan.py -m -s 192.168.1.0/24
 
-192.168.1.1     Vendor: Ubiquiti Networks Inc. Listening ports: [22, 80, 443]
-
+[['192.168.1.1', 'b4:fb:e4:cc:b5:ad', 'Ubiquiti Networks Inc.', '[22, 80, 443]']]
+...
 ```
 
 ## Bind to a specific interface IP 
@@ -128,6 +128,7 @@ Some example module calls are includes below.
   
 ## Output 
 When invoked as a python module NetworkScan can return results as a list object with no extra output or printed output. *This requires the module='1' argument.*
+
 ```
 #test.py
 import NetworkScan
