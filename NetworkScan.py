@@ -127,13 +127,13 @@ def clisetup ():
     
 def networkscan(**kwargs):
     if __name__ == "__main__":
-       #If run directly, check for command line args convert to a dict
+       #If run directly, get command line args convert to a dict
        clivars = vars(clisetup())
-       #Removes any values set to 'None' so kwargs.get works properly
+       #Remove any values set to 'None' so kwargs.get works properly
        kwargs = {k:v for k,v in clivars.items() if v is not None}
     # kwargs.get(key[, default])
     threads = int(kwargs.get('threads','30'))
-    modulecall = kwargs.get('module','0')                            
+    modulecall = kwargs.get('module','')                            
     ip = kwargs.get('bind',get_local_ip())
     #check for ports parameter
     if kwargs.get('ports') is None:
@@ -144,7 +144,7 @@ def networkscan(**kwargs):
     ports = []
     for port in splitports:
         ports.append(int(port))
-    # targethosts for for each case 1.1.1.1 , range 1.1.1.1-1.1.1.2 or network 1.1.2.1/12
+    # make targethosts for for each case 1.1.1.1 , range 1.1.1.1-1.1.1.2 or network 1.1.2.1/12
     if "/" in str(kwargs.get('scantarget')):
         #if / assume a proper network
         targethosts = get_hosts(kwargs.get('scantarget')) 
@@ -178,8 +178,8 @@ def networkscan(**kwargs):
         if not modulecall:
             print('========== Network has ' + str(len(targethosts)) + ' hosts, this scan may take several minutes to complete. ==========')
             print(' ')
-    runscan(targethosts, ports, ip , threads, modulecall) 
-    return ()
+    modulereturn = runscan(targethosts, ports, ip , threads, modulecall)
+    return(modulereturn)
 
 def runscan (targethosts, ports, ip , threads, modulecall):
     #accept parameters and setup the scan run
@@ -203,16 +203,26 @@ def runscan (targethosts, ports, ip , threads, modulecall):
     # wait until the thread terminates.
     q.join()
     if __name__ == "__main__":
+        #if called directly 
         if modulecall:
+            #Directly called and modulecall set
             #print("DBG Module Call Dump:")
             print(modulereturn)
         else:
             print("Scan completed.")
+            return()
     else:
-        return(modulereturn)
+        #Called from python
+        if not modulecall:
+            print("Scan completed.")
+            return()
+        else: 
+            return(modulereturn)
 
 def main():
         networkscan()
 #call main
-main () 
+if __name__ == '__main__':
+    main()
+
 
