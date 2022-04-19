@@ -1,5 +1,5 @@
 """Scans IP network 
-usage: rewrite.py [-h] [-b <IP>] [-p <ports>] [-m] [-t ##] [-s <IP>]usage: rewrite.py [-h] [-b <IP>] [-p <ports>] [-m] [-t ##] [-s <IP>]
+usage: NetworkScan.py [-h] [-b <IP>] [-p <ports>] [-m] [-t ##] [-s <IP>]
 
 TCP network scanner will scan the default IP interfaces entire network when no additional options are specified
 
