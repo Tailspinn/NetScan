@@ -1,7 +1,7 @@
 """Scans IP network 
-usage: NetworkScan.py [-h] [-b <IP>] [-p <ports>] [-m] [-t ##] [-s <IP>]
+usage: NetScan.py [-h] [-b <IP>] [-p <ports>] [-m] [-t ##] [-s <IP>]
 
-TCP network scanner will scan the default IP interfaces entire network when no additional options are specified
+TCP net scan will scan the default IP interfaces entire network when no additional options are specified
 
 options:
   -h, --help            show this help message and exit
@@ -16,10 +16,10 @@ options:
 The scantarget can be specified as a single ip, multiple ips, a range, or a CIDR network.
 
 Use Examples:
->Networkscan.py -s 192.168.1.1   #Scan a single IP.
->Networkscan.py -s 192.168.1.2,192.168.1.9,10.1.1.3 -b 192.168.1.207    #Scan multiple IPs, Binds to specific local IP
->NetworkScan.py -s 192.168.1.1-192.168.1.10 -p 443,1433      #Scan a range, for ports 443 and 1433
->Networkscan.py -m -s 192.168.1.1/24 -t 50    #Scan an entire network with 50 threads, suppresses extra output"""
+>Netscan.py -s 192.168.1.1   #Scan a single IP.
+>Netscan.py -s 192.168.1.2,192.168.1.9,10.1.1.3 -b 192.168.1.207    #Scan multiple IPs, Binds to specific local IP
+>Netscan.py -s 192.168.1.1-192.168.1.10 -p 443,1433      #Scan a range, for ports 443 and 1433
+>Netscan.py -m -s 192.168.1.1/24 -t 50    #Scan an entire network with 50 threads, suppresses extra output"""
 
 import ipaddress
 import socket
@@ -120,10 +120,10 @@ def clisetup():
         description="TCP network scanner will scan the default IP interfaces entire network when no additional options are specified",
         epilog="""The scantarget can be specified as a single ip, multiple ips, a range, or a CIDR network.
 \nUse Examples: 
->Networkscan.py -s 192.168.1.1   #Scan a single IP.
->Networkscan.py -s 192.168.1.2,192.168.1.9,10.1.1.3 -b 192.168.1.207    #Scan multiple IPs, Binds to specific local IP
->NetworkScan.py -s 192.168.1.1-192.168.1.10 -p 443,1433      #Scan a range, for ports 443 and 1433
->Networkscan.py -m -s 192.168.1.1/24 -t 50    #Scan an entire network with 50 threads, suppresses extra output """,
+>NetScan.py -s 192.168.1.1   #Scan a single IP.
+>NetScan.py -s 192.168.1.2,192.168.1.9,10.1.1.3 -b 192.168.1.207    #Scan multiple IPs, Binds to specific local IP
+>NetScan.py -s 192.168.1.1-192.168.1.10 -p 443,1433      #Scan a range, for ports 443 and 1433
+>NetScan.py -m -s 192.168.1.1/24 -t 50    #Scan an entire network with 50 threads, suppresses extra output """,
     )
     parser.add_argument(
         "-b",
@@ -163,7 +163,7 @@ def clisetup():
     return args
 
 
-def networkscan(**kwargs):
+def netscan(**kwargs):
     if __name__ == "__main__":
         # If run directly, get command line args convert to a dict
         clivars = vars(clisetup())
@@ -264,7 +264,7 @@ def runscan(targethosts, ports, ip, threads, modulecall):
 
 
 def main():
-    networkscan()
+    netscan()
 
 
 # call main
