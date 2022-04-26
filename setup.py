@@ -1,7 +1,7 @@
 from distutils.core import setup
 
-setup(name='NetworkScan',
-      version='1.1',
-      py_modules=['networkscan'],
+setup(name='NetScan',
+      version='1.12.4',
+      py_modules=['netscan'],
       description="Cross platform threaded tcp network port scanner with module support.",
       )
